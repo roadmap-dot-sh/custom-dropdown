@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Custom Dropdown</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --border: #222;
+        --muted: #777;
+        --accent: #000;
+        --option-hover: #f6f6f6;
+        --radius: 16px;
+        --control-padding: 20px;
+        --font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      body {
+        font-family: var(--font-family);
+        background: #f8fbff;
+        padding: 32px;
+        color: var(--accent);
+        line-height: 1.2;
+      }
+
+      .container {
+        max-width: 560px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 20px;
+        margin: 0 0 18px;
+        color: #0b61b8;
+      }
+
+      /* Dropdown wrapper */
+      .dropdown {
+        position: relative;
+        width: 100%;
+        margin: 18px 0;
+        user-select: none;
+      }
+
+      /* Control */
+      .dropdown__control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: var(--bg);
+        border: 3px solid var(--border);
+        padding: var(--control-padding);
+        border-radius: var(--radius);
+        cursor: pointer;
+        box-sizing: border-box;
+        transition:
+          box-shadow 0.12s ease,
+          transform 0.06s ease;
+      }
+
+      /* Slight lift when open */
+      .dropdown--open .dropdown__control {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+      }
+
+      .dropdown__label {
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--accent);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dropdown__placeholder {
+        color: var(--muted);
+      }
+
+      .dropdown__chev {
+        font-size: 20px;
+        color: var(--accent);
+        margin-left: auto;
+        transform: rotate(0deg);
+        transition: transform 0.15s ease;
+      }
+
+      .dropdown--open .dropdown__chev {
+        transform: rotate(180deg);
+      }
+
+      /* Popup list */
+      .dropdown__list {
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin-top: 12px;
+        background: var(--bg);
+        border: 3px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transform-origin: top center;
+        transition:
+          max-height 0.22s ease,
+          opacity 0.18s ease,
+          transform 0.18s ease;
+        z-index: 20;
+      }
+
+      .dropdown--open .dropdown__list {
+        max-height: 420px; /* big enough for many items; can scroll */
+        opacity: 1;
+        transform: translateY(0);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .dropdown__options {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dropdown__option {
+        padding: 22px 20px;
+        font-size: 22px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      /* Remove top border for first option */
+      .dropdown__option:first-child {
+        border-top: none;
+      }
+
+      .dropdown__option:hover,
+      .dropdown__option:focus {
+        background: var(--option-hover);
+        outline: none;
+      }
+
+      .dropdown__option[aria-selected="true"] {
+        background: transparent;
+      }
+
+      .check {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #000;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Make it feel like mockup: rounded bottom corners for list */
+      .dropdown__list {
+        border-radius: 18px;
+        padding: 0;
+      }
+
+      /* small screens adapt font sizes*/
+      @media (max-width: 420px) {
+        .dropdown__label {
+          font-size: 20px;
+        }
+        .dropdown__option {
+          font-size: 18px;
+          padding: 16px 14px;
+        }
+        .dropdown__chev {
+          font-size: 18px;
+        }
+        .dropdown__control {
+          padding: 14px;
+        }
+      }
+
+      /* Focus ring for accessibility */
+      .dropdown__control:focus {
+        outline: 4px solid rgba(11, 97, 184, 0.14);
+      }
+
+      /* Visually hidden helper */
+      .sr-only {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Custom Dropdown</h1>
+      <p style="margin-top: 0; color: #1c63a6">
+        This project will help you practice DOM manipulation, event handling,
+        and creating responsive and interactive elements with JavaScript.
+      </p>
+
+      <!-- Dropdown -->
+      <div class="dropdown" id="customDropdown">
+        <button
+          type="button"
+          class="dropdown__control"
+          id="dropdownControl"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-labelledby="selectedLabel">
+          <span id="selectedLabel" class="dropdown__label dropdown__placeholder"
+            >Select an Item</span
+          >
+          <span class="dropdown__chev" aria-hidden="true">▾</span>
+        </button>
+
+        <div class="dropdown__list" id="dropdownList" role="presentation">
+          <ul
+            class="dropdown__options"
+            id="optionsList"
+            role="listbox"
+            tabindex="-1"
+            aria-labelledby="selectedLabel">
+            <li
+              class="dropdown__option"
+              role="option"
+              tabindex="0"
+              data-value="1"
+              aria-selected="false">
+              First Item
+            </li>
+            <li
+              class="dropdown__option"
+              role="option"
+              tabindex="0"
+              data-value="2"
+              aria-selected="false">
+              Second Item
+            </li>
+            <li
+              class="dropdown__option"
+              role="option"
+              tabindex="0"
+              data-value="3"
+              aria-selected="false">
+              Third Item
+            </li>
+            <li
+              class="dropdown__option"
+              role="option"
+              tabindex="0"
+              data-value="4"
+              aria-selected="false">
+              Fourth Item
+            </li>
+            <li
+              class="dropdown__option"
+              role="option"
+              tabindex="0"
+              data-value="5"
+              aria-selected="false">
+              Fifth Item
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accessibility note -->
+    <p class="sr-only" id="ariaStatus" aria-live="polite"></p>
+
+    <script>
+      (function () {
+        const dropdown = document.getElementById("customDropdown");
+        const control = document.getElementById("dropdownControl");
+        const list = document.getElementById("dropdownList");
+        const optionsList = document.getElementById("optionsList");
+        const options = Array.from(
+          optionsList.querySelectorAll(".dropdown__option"),
+        );
+        const selectedLabel = document.getElementById("selectedLabel");
+        const ariaStatus = document.getElementById("ariaStatus");
+
+        let open = false;
+        let selectedIndex = -1;
+        let focusedIndex = -1;
+
+        function openDropdown() {
+          open = true;
+          dropdown.classList.add("dropdown--open");
+          control.setAttribute("aria-expanded", "true");
+          list.style.pointerEvents = "auto";
+          // focus first option or selected option
+          if (selectedIndex >= 0) {
+            focusOption(selectedIndex);
+          } else {
+            focusOption(0);
+          }
+          ariaStatus.textContent = "List opened.";
+        }
+
+        function closeDropdown() {
+          open = false;
+          dropdown.classList.remove("dropdown--open");
+          control.setAttribute("aria-expanded", "false");
+          control.focus();
+          // collapse animation handled by CSS transitions
+          ariaStatus.textContent = "List closed.";
+        }
+
+        function toggleDropdown() {
+          if (open) closeDropdown();
+          else openDropdown();
+        }
+
+        function renderSelection() {
+          if (selectedIndex >= 0) {
+            const chosen = options[selectedIndex];
+            selectedLabel.textContent = chosen.textContent.trim();
+            selectedLabel.classList.remove("dropdown__placeholder");
+            // visually mark selected in options
+            options.forEach((opt, idx) => {
+              if (idx === selectedIndex) {
+                opt.setAttribute("aria-selected", "true");
+                // add checkmark element if not present
+                if (!opt.querySelector(".check")) {
+                  const c = document.createElement("span");
+                  c.className = "check";
+                  c.setAttribute("aria-hidden", "true");
+                  c.innerHTML = "✓";
+                  opt.appendChild(c);
+                }
+              } else {
+                opt.setAttribute("aria-selected", "false");
+                const ch = opt.querySelector(".check");
+                if (ch) ch.remove();
+              }
+            });
+          } else {
+            // placeholder
+            selectedLabel.textContent = "Select an Item";
+            selectedLabel.classList.add("dropdown__placeholder");
+            options.forEach((opt) => {
+              opt.setAttribute("aria-selected", "false");
+              const ch = opt.querySelector(".check");
+              if (ch) ch.remove();
+            });
+          }
+        }
+
+        function selectOption(index) {
+          if (index < 0 || index >= options.length) return;
+          selectedIndex = index;
+          renderSelection();
+          ariaStatus.textContent =
+            options[index].textContent.trim() + " selected.";
+          closeDropdown();
+        }
+
+        function focusOption(index) {
+          if (index < 0) index = 0;
+          if (index >= options.length) index = options.length - 1;
+          // blur old
+          if (focusedIndex >= 0 && options[focusedIndex])
+            options[focusedIndex].classList.remove("focused");
+          focusedIndex = index;
+          const el = options[focusedIndex];
+          el.focus();
+          // ensure visible when list scrolls
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        // Click on control toggles dropdown
+        control.addEventListener("click", (e) => {
+          e.preventDefault();
+          toggleDropdown();
+        });
+
+        // Keyboard on control
+        control.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown" || e.key === "Down") {
+            e.preventDefault();
+            if (!open) openDropdown();
+            focusOption(selectedIndex >= 0 ? selectedIndex : 0);
+          } else if (e.key === "ArrowUp" || e.key === "Up") {
+            e.preventDefault();
+            if (!open) openDropdown();
+            focusOption(selectedIndex >= 0 ? selectedIndex : 0);
+          } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleDropdown();
+          }
+        });
+
+        // Click on option
+        options.forEach((opt, idx) => {
+          opt.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectOption(idx);
+          });
+
+          opt.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              selectOption(idx);
+            } else if (e.key === "ArrowDown" || e.key === "Down") {
+              e.preventDefault();
+              focusOption(idx + 1);
+            } else if (e.key === "ArrowUp" || e.key === "Up") {
+              e.preventDefault();
+              focusOption(idx - 1);
+            } else if (e.key === "Escape" || e.key === "Esc") {
+              e.preventDefault();
+              closeDropdown();
+            } else if (e.key === "Tab") {
+              // allow normal tab behavior but close dropdown
+              closeDropdown();
+            }
+          });
+
+          // mouseover to set focus index (for keyboard navigation continuity)
+          opt.addEventListener("mouseenter", () => {
+            focusedIndex = idx;
+          });
+        });
+
+        // Click outside closes dropdown
+        document.addEventListener("click", (e) => {
+          if (!dropdown.contains(e.target)) {
+            if (open) closeDropdown();
+          }
+        });
+
+        // Close on Escape at document level
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" || e.key === "Esc") {
+            if (open) {
+              e.preventDefault();
+              closeDropdown();
+            }
+          }
+        });
+
+        // Initialize (already in placeholder)
+        renderSelection();
+
+        // Expose selectOption for debug (optional)
+        window.customDropdown = {
+          select: (i) => selectOption(i),
+          getSelectedIndex: () => selectedIndex,
+        };
+      })();
+    </script>
+  </body>
+</html>
